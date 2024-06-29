@@ -1,6 +1,6 @@
 from book_class import Book
 import csv
-import json
+from hashmap import HashMap
 
 def old():
     library = []
@@ -30,36 +30,35 @@ def old():
             #add book object to library
 
 def new():
-    library = []
-    genre_collection = []
+    genre_collection = set()
+    book_count = 0
+    library_count = 60000
+    library = HashMap(library_count)
+
+
     with open('library.csv', newline='') as csvfile:
         book_reader = csv.DictReader(csvfile, delimiter=',')
         for row in book_reader:
-            #check if genres exists in list of genres. If not on list, add genre to list
-            # print(row["genres"])
-            # print(row["genres"].strip("[]"))
-            # print(row["genres"].strip("[]").split(", "))
-            genre_list = row["genres"].strip("[]").split(", ")
-            for el in genre_list:
-                new_el = el[1:-1]
-                print(el, " => ", new_el)
-                print(el, " => ", el.replace("'", ""))
-            print(genre_list)
+            book_count += 1
+            #create list of genres
+            genre_list = row["genres"].strip("[]").replace("'", "").split(", ")
+
+            #add genres to genre set
+            for genre in genre_list:
+                genre_collection.add(genre)
+
+            #create hash for each each book object
+            title_key = row["title"].replace(" ", "")
+
+            #create object for each book
+            book_object = Book(row['title'], row['series'],row['author'], row['rating'], row['description'], genre_list)
+            
+            #create hashmap of book objects
+            library.assign(title_key, book_object)
 
 
-        #    genres_stripped = row["genres"].strip("[]")
-        #    genres_stripped2 = genres_stripped.strip(",")
-        #    genres_stripped3 = genres_stripped2.strip('""')
-        #    genres_split = genres_stripped3.split("''")
-        #    print(genres_stripped)
-        #    print(genres_split)
-        #    print(type(genres_split))
-            break                    
-        
-
-
-# print(library[1])
-# print(library)
+    print(library.retrieve("thehungergames"))
 
 new()
+
         
