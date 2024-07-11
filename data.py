@@ -31,53 +31,60 @@ with open('library.csv', newline='') as csvfile:
 
 def user_interaction():
     print("\n\nWelcome to Julia's Library!\n\nWe have over 50,000 books for you to choose from!\n\nLet's get started!")
-    genre_1 = choose_genre(genre_collection)
+    # genre_1 = choose_genre(genre_collection)
     narrow_down_1 = narrow_down(genre_collection)
    
 
     
 
-def choose_genre(collection):
-    genre_display = input("\nThere are {} genres. Would you like to see the list of options? Enter Y for yes and N for no.".format(len(collection)))
+def choose_genre(genre_dictionary: Dict[str, set]) -> str:
+    genre_display = input("\nThere are {} genres. Would you like to see the list of options? Enter Y for yes and N for no.".format(len(genre_dictionary)))
     if genre_display == "y":
-        genre_list = (collection.keys())
+        genre_list = (genre_dictionary.keys())
         print(genre_list)   
     genre = input("\n\nPlease enter in a genre:\n\n").lower()
-    if genre in collection:
-        genre_len = len(collection[genre])
+    if genre in genre_dictionary:
+        genre_len = len(genre_dictionary[genre])
         print("There are {num} books in this collection.\n\n".format(num=genre_len))
         return genre
     else:
-        new_genre = input("\n\nSorry, but that genre doesn't exist. Press enter to try again.")
-        choose_genre()
+        print("\n\nSorry, but that genre doesn't exist. Press enter to try again.")
+        return choose_genre(genre_dictionary)
     
 
-def narrow_down(collection):
+def narrow_down(genre_dictionary: Dict[str, set]):
+    genre = choose_genre(genre_dictionary)
     narrow_again = input("Would you like to narrow down your search further? Enter Y for yes. Enter N for no.")
     if narrow_again == "y":
-        genre = choose_genre(collection)
-        new_collection = dict()
-        for el in collection[genre]:
+        smaller_genre_dictionary = dict()
+        for el in genre_dictionary[genre]:
             el_genres = library[el].genres
             # print(el_genres) --> ['Short Stories', 'Fiction', 'Classics', 'Literature', 'American', 'School', '19th Century', 'Anthologies', 'Adventure', 'American Classics']
             # print(type(el_genres)) --> list
             for genre in el_genres:
-                if genre not in new_collection:
-                    new_collection[genre] = set()
-                new_collection[genre].add(el)
-        narrow_down(new_collection)
+                if genre not in smaller_genre_dictionary:
+                    smaller_genre_dictionary[genre] = set()
+                smaller_genre_dictionary[genre].add(el)
+        narrow_down(smaller_genre_dictionary)
     if narrow_again == "n":
-        # print(collection) --> dictionary looks good {genre: UUIDs}
+        # print(collection) #--> dictionary looks good {genre: UUIDs}
         # print(type(collection)) --> dict
-        # print(len(collection)) --> 609, so less then the original 900
-        return collection
+        # print(len(collection)) #--> 609, so less then the original 900
+        return genre_dictionary
     else:
-        new_genre = input("Sorry, but that genre does not exist. Please try again.")
-        narrow_down(collection)
+        print("Sorry, but that genre does not exist. Please try again.")
+        narrow_down(genre_dictionary)
 
-            
+def bubble_sort(collection):
+    pass
+    #input is a dictionary from narrow_down function {genre: set(UUIDs)}
+    #prints a list of books in alphabetical order that is numbered. (ie: 1. Harry Potter, 2. Percy Jackson, etc)
+    #output is a new dictionary sorted alphabetically by title 
+
+def get_info(collection):
+    pass
+    #input is a dictionary{book number, UUID}
+    #user types in book number (ie: 3) and the book info is returned (library[UUID])
     
-
 user_interaction()
 
-# choose_genre()
