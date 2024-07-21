@@ -27,6 +27,7 @@ with open('library.csv', newline='') as csvfile:
                 genre_collection[lower_genre] = set()
             genre_collection[lower_genre].add(book_object.uuid)
 
+#walks user through book selection process
 def user_interaction():
     print("\n\nWelcome to Julia's Library!\n\nWe have over 50,000 books for you to choose from!\n\nLet's get started!\n\n")
     relevant_uuid = set(library.keys())
@@ -47,6 +48,7 @@ def user_interaction():
         see_book_info = input("\n\nWould you like to see information on any of the titles listed? Enter Y for yes and N for no.\n\n").lower()
     print("\n\nThanks for using Julia's Book Library! \n\nGoodbye!\n")
             
+#shows user genre options to choose from and allows them to pick a genre
 def choose_genre(relevant_uuid: set) -> str:
     genre_array = list()
     for uuid in relevant_uuid:
@@ -69,7 +71,8 @@ def choose_genre(relevant_uuid: set) -> str:
     else:
         print("\n\nSorry, but that genre doesn't exist. Press enter to try again.\n\n")
         return choose_genre(relevant_uuid)
-    
+
+#narrows down book selections based on genres    
 def narrow_down(genre: str, relevant_uuid) -> set:
     uuids_requested = genre_collection[genre]
     temp_uuid = relevant_uuid.intersection(uuids_requested)
@@ -78,6 +81,7 @@ def narrow_down(genre: str, relevant_uuid) -> set:
     else:
         return temp_uuid
 
+#sorts list of books in alphabetical order
 def bubble_sort(relevant_uuid) -> list:
     uuid_array = list(relevant_uuid)
     iteration_count = 0
@@ -92,6 +96,7 @@ def bubble_sort(relevant_uuid) -> list:
         count += 1
     return uuid_array
 
+#retrieves description of book from the book class
 def get_info(sorted_uuids: list):
     book_number = input("\n\nPlease enter in the number of the title you would like to see more information on:\n\n")
     book_idx = int(book_number) - 1
