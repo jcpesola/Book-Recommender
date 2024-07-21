@@ -30,24 +30,22 @@ with open('library.csv', newline='') as csvfile:
 def user_interaction():
     print("\n\nWelcome to Julia's Library!\n\nWe have over 50,000 books for you to choose from!\n\nLet's get started!\n\n")
     relevant_uuid = set(library.keys())
-    user_input_1 = input("Would you like to narrow down your search? Enter Y for yes and N for no.").lower()
+    user_input_1 = input("Would you like to narrow down your search? Enter Y for yes and N for no.\n\n").lower()
+    if user_input_1 != "y" and user_input_1 != "n":
+        user_input_1 = input("\n\nSorry, your response is not recognizable. Please try again. Enter Y for yes and N for no.\n\n").lower()
     while user_input_1 == "y":
         selected_genre = choose_genre(relevant_uuid)
         relevant_uuid = narrow_down(selected_genre, relevant_uuid) 
-        user_input_1 = input("There are {num} books in this collection. Would you like to narrow down your search? Enter Y for yes and N for no.".format(num=len(relevant_uuid))).lower()
+        user_input_1 = input("\n\nThere are {num} books in this collection. Would you like to narrow down your search? Enter Y for yes and N for no.\n\n".format(num=len(relevant_uuid))).lower()
     sorted_uuids = bubble_sort(relevant_uuid)
-    see_book_info = input("Would you like to see information on any of the titles listed? Enter Y for yes and N for no.\n\n")
-    if see_book_info.lower() == "y":
-        user_input_2 = True 
-    if see_book_info.lower() == "n":
-        print("Thanks for using Julia's Book Library! \n\nGoodbye!")
-    while user_input_2 is True:
+    see_book_info = input("\n\nWould you like to see information on any of the titles listed? Enter Y for yes and N for no.\n\n").lower()
+    if see_book_info != "y" and see_book_info != "n":
+        see_book_info = input("\n\nSorry, your response is not recognizable. Please try again. Enter Y for yes and N for no.\n\n").lower()
+    while see_book_info.lower() == "y":
         book_info = get_info(sorted_uuids)
         print(book_info)
-        see_book_info = input("Would you like to see information on any of the titles listed? Enter Y for yes and N for no.\n\n")
-
-
-   
+        see_book_info = input("\n\nWould you like to see information on any of the titles listed? Enter Y for yes and N for no.\n\n").lower()
+    print("\n\nThanks for using Julia's Book Library! \n\nGoodbye!\n")
             
 def choose_genre(relevant_uuid: set) -> str:
     genre_array = list()
@@ -56,14 +54,20 @@ def choose_genre(relevant_uuid: set) -> str:
             lower_genre = genre.lower()
             if lower_genre not in genre_array:
                 genre_array.append(lower_genre)
-    genre_display = input("\nThere are {num} genres. Would you like to see the list of genre options? Enter Y for yes and N for no.".format(num=len(genre_array))).lower()
-    if genre_display == "y":
-        print(genre_array)   
+    genre_display = input("\n\nThere are {num} genres. Would you like to see the list of genre options? Enter Y for yes and N for no.\n\n".format(num=len(genre_array))).lower()
+    if genre_display != "y" and genre_display != "n":
+        genre_display = input("\n\nSorry, your response is not recognizable. Please try again. Enter Y for yes and N for no.\n\n").lower()
+    elif genre_display == "y":
+        genre_string = ""
+        for genre in genre_array:
+            genre_string = genre_string + genre + ", "
+        genre_string = genre_string[:-2]
+        print("\n\n" + genre_string)   
     genre = input("\n\nPlease enter in a genre:\n\n").lower()
     if genre in genre_array:
         return genre
     else:
-        print("\n\nSorry, but that genre doesn't exist. Press enter to try again.")
+        print("\n\nSorry, but that genre doesn't exist. Press enter to try again.\n\n")
         return choose_genre(relevant_uuid)
     
 def narrow_down(genre: str, relevant_uuid) -> set:
@@ -89,7 +93,13 @@ def bubble_sort(relevant_uuid) -> list:
     return uuid_array
 
 def get_info(sorted_uuids: list):
-    book_number = input("Please enter in the number of the title you would like to see more information on:\n\n")
+    book_number = input("\n\nPlease enter in the number of the title you would like to see more information on:\n\n")
+    book_idx = int(book_number) - 1
+    if book_idx < len(sorted_uuids):
+        return library[sorted_uuids[book_idx]]
+    else:
+        print("\n\nSorry, but that number was not recognized. Please try again.\n\n")
+        return get_info(sorted_uuids)
     
     
     
