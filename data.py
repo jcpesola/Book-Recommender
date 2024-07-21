@@ -18,6 +18,7 @@ with open('library.csv', newline='') as csvfile:
         #create object for each book
         book_object = Book(row['title'], row['series'],row['author'], row['rating'], row['description'], genre_list)
         library.update({book_object.uuid: book_object})
+        # relevant_uuid.add(book_object.uuid)
             
         #add genres and book UUID's to genre dictionary
         for genre in genre_list:
@@ -27,48 +28,70 @@ with open('library.csv', newline='') as csvfile:
             genre_collection[lower_genre].add(book_object.uuid)
 
 def user_interaction():
-    print("\n\nWelcome to Julia's Library!\n\nWe have over 50,000 books for you to choose from!\n\nLet's get started!")
-    # genre_1 = choose_genre(genre_collection)
-    narrow_down_1 = narrow_down(genre_collection)
-      
+    print("\n\nWelcome to Julia's Library!\n\nWe have over 50,000 books for you to choose from!\n\nLet's get started!\n\n")
+    relevant_uuid = set(library.keys())
+    user_input_1 = input("Would you like to narrow down your search? Enter Y for yes and N for no.").lower()
+    while user_input_1 == "y":
+        selected_genre = choose_genre(relevant_uuid)
+        relevant_uuid = narrow_down(selected_genre, relevant_uuid) 
+        user_input_1 = input("There are {num} books in this collection. Would you like to narrow down your search? Enter Y for yes and N for no.".format(num=len(relevant_uuid))).lower()
+    sorted_uuids = bubble_sort(relevant_uuid)
+    see_book_info = input("Would you like to see information on any of the titles listed? Enter Y for yes and N for no.\n\n")
+    if see_book_info.lower() == "y":
+        user_input_2 = True 
+    if see_book_info.lower() == "n":
+        print("Thanks for using Julia's Book Library! \n\nGoodbye!")
+    while user_input_2 is True:
+        book_info = get_info(sorted_uuids)
+        print(book_info)
+        see_book_info = input("Would you like to see information on any of the titles listed? Enter Y for yes and N for no.\n\n")
 
-def choose_genre(genre_dictionary: Dict[str, set]) -> str:
-    genre_display = input("\nThere are {} genres. Would you like to see the list of options? Enter Y for yes and N for no.".format(len(genre_dictionary)))
+
+   
+            
+def choose_genre(relevant_uuid: set) -> str:
+    genre_array = list()
+    for uuid in relevant_uuid:
+        for genre in library[uuid].genres:
+            lower_genre = genre.lower()
+            if lower_genre not in genre_array:
+                genre_array.append(lower_genre)
+    genre_display = input("\nThere are {num} genres. Would you like to see the list of genre options? Enter Y for yes and N for no.".format(num=len(genre_array))).lower()
     if genre_display == "y":
-        genre_list = (genre_dictionary.keys())
-        print(genre_list)   
+        print(genre_array)   
     genre = input("\n\nPlease enter in a genre:\n\n").lower()
-    if genre in genre_dictionary:
+    if genre in genre_array:
         return genre
     else:
         print("\n\nSorry, but that genre doesn't exist. Press enter to try again.")
-        return choose_genre(genre_dictionary)
+        return choose_genre(relevant_uuid)
     
-def narrow_down(genre_dictionary: Dict[str, set]):
-    current_set = genre_dictionary[choose_genre(genre_dictionary)]
-    print("There are {} books.\n\n".format(len(current_set)))
-    repeat_intersection = input("Would you like to narrow down your search further? Enter y for yes. Enter n for no.")
-    while (repeat_intersection == "y") is True:
-        new_set = current_set.intersection(genre_dictionary[choose_genre(genre_dictionary)])
-        if new_set is None:
-            print("\n\nThere are no books available.")
-            repeat_intersection = input("Would you like to edit your search and try again? Enter y for yes. Enter n for no.")
-        else:
-            current_set = new_set
-            print("\n\nThere are {num} books.\n\n".format(num=len(current_set)))
-            repeat_intersection = input("Would you like to narrow down your search further? Enter y for yes. Enter n for no.")
-    return current_set
+def narrow_down(genre: str, relevant_uuid) -> set:
+    uuids_requested = genre_collection[genre]
+    temp_uuid = relevant_uuid.intersection(uuids_requested)
+    if temp_uuid is None:
+        return None
+    else:
+        return temp_uuid
 
-def bubble_sort(collection):
-    pass
-    #input is a dictionary from narrow_down function {genre: set(UUIDs)}
-    #prints a list of books in alphabetical order that is numbered. (ie: 1. Harry Potter, 2. Percy Jackson, etc)
-    #output is a new dictionary sorted alphabetically by title 
+def bubble_sort(relevant_uuid) -> list:
+    uuid_array = list(relevant_uuid)
+    iteration_count = 0
+    for i in range(len(uuid_array)):
+        for idx in range(len(uuid_array)- i - 1):
+            iteration_count += 1
+            if library[uuid_array[idx]].title > library[uuid_array[idx + 1]].title:
+                library[uuid_array[idx]], library[uuid_array[idx + 1]] = library[uuid_array[idx + 1]], library[uuid_array[idx]]
+    count = 1
+    for uuid in uuid_array:
+        print("\n" + str(count) + ". " + library[uuid].title)
+        count += 1
+    return uuid_array
 
-def get_info(collection):
-    pass
-    #input is a dictionary{book number, UUID}
-    #user types in book number (ie: 3) and the book info is returned (library[UUID])
+def get_info(sorted_uuids: list):
+    book_number = input("Please enter in the number of the title you would like to see more information on:\n\n")
+    
+    
     
 user_interaction()
 
