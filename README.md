@@ -8,6 +8,7 @@ This is a portfolio project for my Codecademy Computer Science course. For the p
 - Used bubble sort to arrange the books in alphabetical order for the user to view.
 - Created a book class, which stores all information pertaining to each book (ie: title, author, rating, description, etc).
 - Integrates lessons learned in Introduction to Python, Data Structures & Algorithms on Codecademy
+- Dataset of books comes from Kaggle. It's a csv file with over 50,000 books from Goodreads. Check out the link here: https://www.kaggle.com/datasets/arnabchaki/goodreads-best-books-ever
 
 ## Technologies Used
 - Dictionaries
@@ -19,7 +20,7 @@ This is a portfolio project for my Codecademy Computer Science course. For the p
 *Author's Note: I know Bubble Sort is extremely inefficient... I used it in this program for educational purposes only. 
 
 ## Usage
-To get personalized book recommendations, simply:
+To get personalized book recommendations:
 1. Download the folder.
 2. Run the software. 
 3. Follow the promtps.
