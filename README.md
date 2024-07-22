@@ -17,12 +17,12 @@ This is a portfolio project for my Codecademy Computer Science course. For the p
 - Recursion
 - Bubble Sort*
 
-*Author's Note: I know Bubble Sort is extremely inefficient... I used it in this program for educational purposes only. 
+*Author's Note: I know Bubble Sort is extremely inefficient... I used it in this program for educational purposes only. I intend to update the program to utilize a more efficient algorithm soon.
 
 ## Usage
 To get personalized book recommendations:
 1. Download the folder.
 2. In your terminal, navigate to the folder 'Book Recommender.'
-3. Type in `python3 __main__.py` *
-        *Note: if you have a different version of python, type that in instead of 'python3'
+3. Type in `python3 __main__.py`*  
+*Note: if you have a different version of python, type that in instead of 'python3'
 4. Follow the prompts from the program, and recieve your personalized book recommendation!
