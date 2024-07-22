@@ -22,6 +22,7 @@ This is a portfolio project for my Codecademy Computer Science course. For the p
 ## Usage
 To get personalized book recommendations:
 1. Download the folder.
-2. Run the software. 
-3. Follow the promtps.
-3. Recieve your personalized book recommendation!
+2. In your terminal, navigate to the folder 'Book Recommender.'
+3. Type in 'python3 __main__.py' *
+        *Note: if you have a different version of python, type that in instead of 'python3'
+4. Follow the prompts from the program, and recieve your personalized book recommendation!
