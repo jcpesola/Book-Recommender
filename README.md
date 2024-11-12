@@ -1,10 +1,10 @@
 # Python Recommendation Software: Book Recomender 
 
 ## Overview
-This is a portfolio project for my Codecademy Computer Science course. For the project, I was tasked with creating a recommendation software in Python. I chose to create a book recomender. As an avid reader, I hoped this program would make it easier to select my next read!
+This is a project for my personal learning in which I created a recommendation software in Python. As an avid reader, I am always looking for my next read, so this program recommends books based on their genres.
 
 ## Key Features
-- Utilized sets and intersection to narrow down what book genres.
+- Utilized sets and intersection to narrow down book genres.
 - Used bubble sort to arrange the books in alphabetical order for the user to view.
 - Created a book class, which stores all information pertaining to each book (ie: title, author, rating, description, etc).
 - Integrates lessons learned in Introduction to Python, Data Structures & Algorithms on Codecademy
