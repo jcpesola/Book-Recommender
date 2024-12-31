@@ -1,112 +1,202 @@
+import requests
 from typing import Dict
 from book_class import Book
-import csv
 import uuid
 
 genre_collection: Dict[str, set] = dict()
-book_count = 0
-library_count = 60000
 library: Dict[uuid.UUID, Book] = dict()
 
-with open('library.csv', newline='') as csvfile:
-    book_reader = csv.DictReader(csvfile, delimiter=',')
-    for row in book_reader:
-        book_count += 1
-        #create list of genres
-        genre_list = row["genres"].strip("[]").replace("'", "").split(", ")
-
-        #create object for each book
-        book_object = Book(row['title'], row['series'],row['author'], row['rating'], row['description'], genre_list)
-        library.update({book_object.uuid: book_object})
-        # relevant_uuid.add(book_object.uuid)
+def fetch_books_by_genre(genre: str):
+    """Fetch books for a specific genre (subject) and add them to the genre_collection."""
+    print(f"Fetching books for genre (subject): {genre}...")
+    url = f"https://openlibrary.org/subjects/{genre.replace(' ', '_').lower()}.json?limit=50"
+    
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            works = data.get("works", [])
             
-        #add genres and book UUID's to genre dictionary
-        for genre in genre_list:
-            lower_genre = genre.lower()
-            if lower_genre not in genre_collection:
-                genre_collection[lower_genre] = set()
-            genre_collection[lower_genre].add(book_object.uuid)
+            if works:
+                for book in works:
+                    title = book.get("title", "Unknown Title")
+                    author = ", ".join([a.get("name", "Unknown Author") for a in book.get("authors", [])])
+                    description = (
+                        book.get("description", "No description available.")
+                        if isinstance(book.get("description"), str)
+                        else "No description available."
+                    )
+                    subjects = book.get("subject", [])
+                    rating = "N/A"  # Rating not available in the API
+                    
+                    # Convert subjects to lowercase for consistent searching
+                    genres = [s.lower() for s in subjects] if subjects else [genre.lower()]
+                    
+                    book_object = Book(title, None, author, rating, description, genres)
+                    library[book_object.uuid] = book_object
+                    
+                    for subject in genres:
+                        if subject not in genre_collection:
+                            genre_collection[subject] = set()
+                        genre_collection[subject].add(book_object.uuid)
+                        
+                print(f"Books for genre '{genre}' fetched successfully.")
+            else:
+                print(f"No books found for genre '{genre}'.")
+        else:
+            print(f"Failed to fetch books for genre '{genre}'. Status Code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred while fetching books for genre '{genre}'. Please try again later. Error: {e}")
 
-#walks user through book selection process
+def initialize_genres():
+    """Initialize a predefined list of genres and handle user input to display them."""
+    print("Initializing genre list...")
+    all_subjects = [
+        "Arts", "Architecture", "Art Instruction", "Art History", "Dance", "Design", "Fashion", "Film", "Graphic Design", 
+        "Music", "Music Theory", "Painting", "Photography", "Animals", "Bears", "Cats", "Kittens", "Dogs", "Puppies", 
+        "Fiction", "Fantasy", "Historical Fiction", "Horror", "Humor", "Literature", "Magic", 
+        "Mystery and detective stories", "Plays", "Poetry", "Romance", "Science Fiction", "Short Stories", "Thriller", 
+        "Young Adult", "Science & Mathematics", "Biology", "Chemistry", "Mathematics", "Physics", "Programming", 
+        "Business & Finance", "Management", "Entrepreneurship", "Business Economics", "Business Success", "Finance", 
+        "Children's", "Kids Books", "Stories in Rhyme", "Baby Books", "Bedtime Books", "Picture Books", "History", 
+        "Ancient Civilization", "Archaeology", "Anthropology", "World War II", "Social Life and Customs", "Health & Wellness", 
+        "Cooking", "Cookbooks", "Mental Health", "Exercise", "Nutrition", "Self-help", "Biography", "Autobiographies", 
+        "History", "Politics and Government", "World War II", "Women", "Kings and Rulers", "Composers", "Artists", 
+        "Social Sciences", "Anthropology", "Religion", "Political Science", "Psychology", "Places", "Brazil", "India", 
+        "Indonesia", "United States", "Textbooks", "History", "Mathematics", "Geography", "Psychology", "Algebra", 
+        "Education", "Business & Economics", "Science", "Chemistry", "English Language", "Physics", "Computer Science", 
+        "Books by Language", "English", "French", "Spanish", "German", "Russian", "Italian", "Chinese", "Japanese"
+    ]
+
+    # Add all subjects to the genre collection
+    for subject in all_subjects:
+        genre_collection[subject.lower()] = set()  # Initialize empty sets for each genre
+
+    # Prompt the user if they want to see the genres
+    show_genres = input("\nWould you like to see a list of available genres? Enter Y for yes and N for no.\n\n").lower()
+
+    while show_genres not in ["y", "n"]:
+        show_genres = input("\nInvalid response. Please enter Y for yes or N for no.\n\n").lower()
+
+    if show_genres == "y":
+        print("\nAvailable genres:")
+        print(", ".join(all_subjects))
+    elif show_genres == "n":
+        print("\nOkay! You can still search by genre later in the program.")
+
 def user_interaction():
-    print("\n\nWelcome to Julia's Library!\n\nWe have over 50,000 books for you to choose from!\n\nLet's get started!\n\n")
-    relevant_uuid = set(library.keys())
-    user_input_1 = input("Would you like to narrow down your search? Enter Y for yes and N for no.\n\n").lower()
-    if user_input_1 != "y" and user_input_1 != "n":
-        user_input_1 = input("\n\nSorry, your response is not recognizable. Please try again. Enter Y for yes and N for no.\n\n").lower()
+    print("\n\nWelcome to Julia's Library!\n\nWe have a curated selection of books for you!\n\nLet's get started!\n\n")
+    initialize_genres()  # Populate genres at the start
+    relevant_uuid = set()
+    user_input_1 = input("\nWould you like to narrow down your search by genres? Enter Y for yes and N for no.\n\n").lower()
+    
+    while user_input_1 not in ["y", "n"]:
+        user_input_1 = input("\n\nSorry, your response is not recognizable. Please enter Y for yes and N for no.\n\n").lower()
+    
+    if user_input_1 == "n":
+        print("\n\nThanks for using Julia's Book Library! We hope you find your next favorite read. \n\nGoodbye!")
+        return
+
     while user_input_1 == "y":
-        selected_genre = choose_genre(relevant_uuid)
-        relevant_uuid = narrow_down(selected_genre, relevant_uuid) 
-        user_input_1 = input("\n\nThere are {num} books in this collection. Would you like to narrow down your search? Enter Y for yes and N for no.\n\n".format(num=len(relevant_uuid))).lower()
-    sorted_uuids = bubble_sort(relevant_uuid)
-    see_book_info = input("\n\nWould you like to see information on any of the titles listed? Enter Y for yes and N for no.\n\n").lower()
-    if see_book_info != "y" and see_book_info != "n":
-        see_book_info = input("\n\nSorry, your response is not recognizable. Please try again. Enter Y for yes and N for no.\n\n").lower()
-    while see_book_info.lower() == "y":
-        book_info = get_info(sorted_uuids)
-        print(book_info)
-        see_book_info = input("\n\nWould you like to see information on any of the titles listed? Enter Y for yes and N for no.\n\n").lower()
-    print("\n\nThanks for using Julia's Book Library! \n\nGoodbye!\n")
+        # Show list of genres if user wants
+        show_genres = input("\nWould you like to see a list of all genres? Enter Y for yes and N for no.\n\n").lower()
+        while show_genres not in ["y", "n"]:
+            show_genres = input("\n\nSorry, your response is not recognizable. Please enter Y for yes and N for no.\n\n").lower()
+        if show_genres == "y":
+            print("\nAvailable genres:")
+            print(", ".join(genre_collection.keys()))
+
+        genre = input("\nPlease enter a genre (e.g., fantasy, science_fiction, mystery):\n\n").lower()
+        
+        # Always fetch books for the selected genre
+        fetch_books_by_genre(genre)
+        
+        # Check if the genre has any books
+        if genre in genre_collection and genre_collection[genre]:
+            # Combine with existing relevant UUIDs if narrowing the search
+            if not relevant_uuid:
+                relevant_uuid = genre_collection[genre]
+            else:
+                relevant_uuid = relevant_uuid.intersection(genre_collection[genre])
             
-#shows user genre options to choose from and allows them to pick a genre
-def choose_genre(relevant_uuid: set) -> str:
-    genre_array = list()
-    for uuid in relevant_uuid:
-        for genre in library[uuid].genres:
-            lower_genre = genre.lower()
-            if lower_genre not in genre_array:
-                genre_array.append(lower_genre)
-    genre_display = input("\n\nThere are {num} genres. Would you like to see the list of genre options? Enter Y for yes and N for no.\n\n".format(num=len(genre_array))).lower()
-    if genre_display != "y" and genre_display != "n":
-        genre_display = input("\n\nSorry, your response is not recognizable. Please try again. Enter Y for yes and N for no.\n\n").lower()
-    elif genre_display == "y":
-        genre_string = ""
-        for genre in genre_array:
-            genre_string = genre_string + genre + ", "
-        genre_string = genre_string[:-2]
-        print("\n\n" + genre_string)   
-    genre = input("\n\nPlease enter in a genre:\n\n").lower()
-    if genre in genre_array:
-        return genre
-    else:
-        print("\n\nSorry, but that genre doesn't exist. Press enter to try again.\n\n")
-        return choose_genre(relevant_uuid)
+            if not relevant_uuid:
+                print("\nNo books found matching the selected filters.")
+                retry = input("\nWould you like to start a new search? Enter Y for yes and N for no.\n\n").lower()
+                while retry not in ["y", "n"]:
+                    retry = input("\n\nSorry, your response is not recognizable. Please enter Y for yes and N for no.\n\n").lower()
+                if retry == "y":
+                    relevant_uuid.clear()
+                    continue
+                else:
+                    print("\n\nThanks for using Julia's Book Library! We hope you find your next favorite read. \n\nGoodbye!")
+                    return
+            
+            # Show limited books
+            sorted_uuids = sort_and_display_books(relevant_uuid, limit=10)
 
-#narrows down book selections based on genres    
-def narrow_down(genre: str, relevant_uuid) -> set:
-    uuids_requested = genre_collection[genre]
-    temp_uuid = relevant_uuid.intersection(uuids_requested)
-    if temp_uuid is None:
-        return None
-    else:
-        return temp_uuid
+            # Ask if user wants to see book details
+            see_book_info = input("\n\nWould you like to see information on any of the titles listed? Enter Y for yes and N for no.\n\n").lower()
+            while see_book_info not in ["y", "n"]:
+                see_book_info = input("\n\nSorry, your response is not recognizable. Please enter Y for yes and N for no.\n\n").lower()
+            
+            while see_book_info == "y":
+                book_info = get_info(sorted_uuids)
+                print(book_info)
+                see_book_info = input("\n\nWould you like to see information on any other title? Enter Y for yes and N for no.\n\n").lower()
+                while see_book_info not in ["y", "n"]:
+                    see_book_info = input("\n\nSorry, your response is not recognizable. Please enter Y for yes and N for no.\n\n").lower()
+        else:
+            print("\n\nSorry, we couldn't find books for that genre. Please try again.")
 
-#sorts list of books in alphabetical order
-def bubble_sort(relevant_uuid) -> list:
-    uuid_array = list(relevant_uuid)
-    iteration_count = 0
-    for i in range(len(uuid_array)):
-        for idx in range(len(uuid_array)- i - 1):
-            iteration_count += 1
-            if library[uuid_array[idx]].title > library[uuid_array[idx + 1]].title:
-                library[uuid_array[idx]], library[uuid_array[idx + 1]] = library[uuid_array[idx + 1]], library[uuid_array[idx]]
+        # Ask to narrow down further
+        user_input_1 = input("\n\nWould you like to narrow down your search further by selecting another genre? Enter Y for yes and N for no.\n\n").lower()
+        while user_input_1 not in ["y", "n"]:
+            user_input_1 = input("\n\nSorry, your response is not recognizable. Please enter Y for yes and N for no.\n\n").lower()
+
+    if user_input_1 == "n":
+        print("\n\nThanks for using Julia's Book Library! We hope you find your next favorite read. \n\nGoodbye!")
+
+def sort_and_display_books(relevant_uuid: set, limit=10) -> list:
+    uuid_array = merge_sort(list(relevant_uuid))
     count = 1
-    for uuid in uuid_array:
-        print("\n" + str(count) + ". " + library[uuid].title)
+    displayed_uuids = []
+    for uuid in uuid_array[:limit]:
+        print(f"\n{count}. {library[uuid].title}")
+        displayed_uuids.append(uuid)
         count += 1
-    return uuid_array
+    return displayed_uuids
 
-#retrieves description of book from the book class
+def merge_sort(relevant_uuid: list) -> list:
+    if len(relevant_uuid) <= 1:
+        return relevant_uuid
+
+    mid = len(relevant_uuid) // 2
+    left_half = merge_sort(relevant_uuid[:mid])
+    right_half = merge_sort(relevant_uuid[mid:])
+
+    return merge(left_half, right_half)
+
+def merge(left: list, right: list) -> list:
+    sorted_list = []
+    while left and right:
+        if library[left[0]].title <= library[right[0]].title:
+            sorted_list.append(left.pop(0))
+        else:
+            sorted_list.append(right.pop(0))
+
+    sorted_list.extend(left)
+    sorted_list.extend(right)
+    return sorted_list
+
 def get_info(sorted_uuids: list):
-    book_number = input("\n\nPlease enter in the number of the title you would like to see more information on:\n\n")
+    book_number = input("\n\nPlease enter the number of the title you would like to see more information on:\n\n")
     book_idx = int(book_number) - 1
-    if book_idx < len(sorted_uuids):
+    if 0 <= book_idx < len(sorted_uuids):
         return library[sorted_uuids[book_idx]]
     else:
-        print("\n\nSorry, but that number was not recognized. Please try again.\n\n")
+        print("\n\nSorry, that number was not recognized. Please try again.\n\n")
         return get_info(sorted_uuids)
-    
-    
-    
+
+# Start the program
 user_interaction()
 
